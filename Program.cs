@@ -1,8 +1,10 @@
-﻿class Program
+﻿
+
+class Program
 {
-    public static int Main(String[] args)
+    public static void Main(String[] args)
     {
         Console.WriteLine("Project started");
-        return 0;
+        DiningHall DH=new DiningHall(10,4);
     }
 }
