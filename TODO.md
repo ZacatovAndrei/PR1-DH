@@ -1,7 +1,7 @@
 # TODO LIST
 
 ### Main tasks
-
+- [ ] Rewrite project in Golang
 - [ ] Create a project structure
 - [ ] Implement a way of configuring the DH parametres
 - [ ] Implement a way of configuring the menu
