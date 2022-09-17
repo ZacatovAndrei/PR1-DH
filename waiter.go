@@ -9,63 +9,75 @@ import (
 )
 
 type Waiter struct {
-	Id           int
+	id           int
 	CurrentOrder *Order
+	OrderList    []Order
 }
 
-func NewWaiter(index int) Waiter {
-	return Waiter{Id: index, CurrentOrder: nil}
+func (w *Waiter) Init(i int) {
+	//TODO: add a new parameter for kitchen's prepared order list
+	w.id = i
+	w.CurrentOrder = nil
+	w.OrderList = nil
 }
 
-func WaiterController(waiter *Waiter, tableList *tableArray) {
+func (w *Waiter) Start(tableList []Table) {
 	for {
-		//searching for an order
+		//Searching for an order
+		//Randomising starting table location
+		var startTable, currentIndex int
 
-		// adding some randomised access to the tables
-		startTable := rand.Intn(TableNumber)
+		startTable = rand.Intn(TableNumber)
+		//looping over the slice starting at a random location
 		for i := 0; i < TableNumber; i++ {
-
-			log.Printf("approaching table #%v with status %v\n", tableList[(startTable+i)%TableNumber].id, tableList[(startTable+i)%TableNumber].status)
-			if tableList[(startTable+i)%TableNumber].status == occupied {
+			currentIndex = (startTable + i) % TableNumber
+			log.Printf("approaching table #%v, state - %v", tableList[currentIndex].id, tableList[currentIndex].state)
+			if tableList[currentIndex].state == occupied {
 				//taking order
-				takeOrder(waiter, &tableList[(startTable+i)%TableNumber])
-				tableList[(startTable+i)%TableNumber].status = waiting
-				log.Printf("Found order at table #%v by waiter #%v;Sending to the kitchen.\n", tableList[(startTable+i)%TableNumber].id, waiter.Id)
-				//sleep for a bit
-				time.Sleep(3 * TimeUnit)
+				w.takeOrder(&tableList[currentIndex])
+				tableList[currentIndex].state = waiting
+				//sleep for a bit because taking an order takes time
+				time.Sleep(5 * TimeUnit)
 				//send order to kitchen
-				sendOrder(waiter.CurrentOrder, KitchenServerAddress)
-			} else {
-				log.Println("No order found")
-				time.Sleep(2 * TimeUnit)
+				w.sendOrder(w.CurrentOrder, KitchenServerAddress)
 			}
 		}
+		//if there are no tables to serve -> deliver orders from the kitchen
+		//TODO: implement a list of orders received from the kitchen
+		log.Println("No orders found,checking kitchen")
+		time.Sleep(5 * TimeUnit)
+		//if err:=w.deliverOrder(ol []Order,t []Table); err!=nil{
+		//log.Printf("Waiter #%v has found no orders in the kitchen\n",w.id)
+		//}
+
 	}
 }
 
-func takeOrder(waiter *Waiter, table *Table) {
-	println(OrderNumber)
+func (w *Waiter) takeOrder(table *Table) {
+	//incrementing the global number of orders
 	OrderNumber++
-	waiter.CurrentOrder = NewOrder(
-		OrderNumber,
-		table.id,
-		waiter.Id,
-		[]int{1, 2, 3, 4, 5},
-		10,
-		10,
-		time.Now().Unix(),
-	)
-	println(OrderNumber)
-	log.Printf("Order from table #%v taken by waiter #%v\n", table.id, waiter.Id)
+	//needed so that the waiters know where and which order has to be delivered
+	table.orderID = OrderNumber
+	//generating a new order
+	numFoods := rand.Intn(MaxFoods) + 1
+	items := make([]int, 10)
+	for i := 0; i < numFoods; i++ {
+		items = append(items, rand.Intn(13))
+	}
+	//getMaxPrepTime(items)
+	w.CurrentOrder = NewOrder(OrderNumber, table.id, w.id, items, rand.Intn(5)+1, 45, time.Now().Unix())
+	log.Printf("Order from table #%v taken by waiter #%v\n", table.id, w.id)
 }
 
-func sendOrder(order *Order, address string) {
+func (w *Waiter) sendOrder(order *Order, address string) {
 	b, ok := json.Marshal(order)
 	fmt.Printf("Order:\n%v", string(b))
 	if ok != nil {
 		log.Fatalln("Could not Marshal JSON")
 	}
 	fmt.Println("fake POST request succeeded")
-
-	//http.Post(address+"/order", "text/json", bytes.NewBuffer(b))
+	//if resp, err := http.Post(address, "text/json", bytes.NewBuffer(b)); err != nil {
+	//	fmt.Printf("%v", resp)
+	//	panic(err)
+	//}
 }

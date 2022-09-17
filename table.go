@@ -14,30 +14,39 @@ const (
 )
 
 type Table struct {
-	id, status int
+	id, state, orderID int
 }
 
-func NewTable(index int) Table {
-	log.Printf("Initialising table %v \n", index)
-	retTab := Table{status: free, id: index}
-	return retTab
+func (t *Table) Init(i int) {
+	t.id = i
+	t.state = free
+	log.Printf("Initialising table %v \n", i)
 }
+
+func (t *Table) Occupy() {
+	t.state = occupied
+	log.Printf("Table %v is now occupied", t.id)
+}
+
+func (t *Table) Free() {
+	t.state = free
+	log.Printf("The order #%v has been served,Table %v is now free", t.orderID, t.id)
+}
+
 func TableController(table *Table) {
-	var random, oldState int
+	var random int
 	for {
-		switch table.status {
+		switch table.state {
 		case free:
+			//it takes 10-15 units of time to occupy a new table
 			random = rand.Intn(6) + 10
 			time.Sleep(time.Duration(random) * TimeUnit)
-			oldState = table.status
-			table.status = occupied
-			log.Printf("status of table %v changed from %v to %v;Table occupied", table.id, oldState, table.status)
+			table.Occupy()
 		case done:
-			random = rand.Intn(16) + 15
+			//it takes 15-20 units of time for people to leave after getting the order
+			random = rand.Intn(6) + 15
 			time.Sleep(time.Duration(random) * TimeUnit)
-			oldState = table.status
-			table.status = free
-			log.Printf("Order has been served;status of table %v changed from %v to %v;Table freed", table.id, oldState, table.status)
+			table.Free()
 		}
 	}
 }

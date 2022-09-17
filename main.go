@@ -9,53 +9,51 @@ const (
 	TimeUnit             = 2 * time.Second
 	TableNumber          = 2
 	WaiterNumber         = 1
-	PortNumber           = ":8086"
-	KitchenServerAddress = ":8087/order"
+	MaxFoods             = 6
+	KitchenServerAddress = "http://localhost:8087/order"
+	//PortNumber         = ":8086"
 )
 
 var (
 	OrderNumber = 0
-	ranking     = 0.0
-)
-
-type (
-	tableArray  [TableNumber]Table
-	WaiterArray [WaiterNumber]Waiter
+	//ranking     = 0.0
 )
 
 func main() {
-	var TableList tableArray
-	initTables(&TableList)
-	var WaiterList WaiterArray
-	initWaiters(&WaiterList, &TableList)
+	//initialising list of tables
+	var TableList = make([]Table, 2*TableNumber)
+	initTables(TableList)
+	//initialising list of waiters
+	var WaiterList = make([]Waiter, 2*WaiterNumber)
+	initWaiters(WaiterList, TableList)
 
-	go CheckTableState(&TableList)
-	//var server = http.NewServeMux()
-	//initServer(server, PortNumber)
-	println(time.Now().Unix())
+	go CheckTableState(TableList)
+	//TODO:implement the server side of the DiningHALL
 	for {
 	}
+	//var server = http.NewServeMux()
+	//initServer(server, PortNumber)
 }
 
-func initTables(tList *tableArray) {
+func initTables(tList []Table) {
 	for i := 0; i < TableNumber; i++ {
-		tList[i] = NewTable(i)
-		log.Printf("initialising table #%v with status %v\n", tList[i].id, tList[i].status)
+		tList[i].Init(i)
+		log.Printf("initialising table #%v with state %v\n", tList[i].id, tList[i].state)
 		go TableController(&tList[i])
 	}
 }
 
-func initWaiters(wList *WaiterArray, tlist *tableArray) {
+func initWaiters(wList []Waiter, tList []Table) {
 	for i := 0; i < WaiterNumber; i++ {
-		wList[i] = NewWaiter(i)
-		log.Printf("initialising waiter #%v with status %v\n", i, 0)
-		go WaiterController(&wList[i], tlist)
+		wList[i].Init(i)
+		log.Printf("initialising waiter #%v with state %v\n", i, 0)
+		go wList[i].Start(tList)
 	}
 }
-func CheckTableState(tList *tableArray) {
+func CheckTableState(tList []Table) {
 	for {
 		for i := 0; i < TableNumber; i++ {
-			log.Printf("table %v; state %v", tList[i].id, tList[i].status)
+			log.Printf("table %v; state %v", tList[i].id, tList[i].state)
 		}
 		time.Sleep(1 * TimeUnit)
 	}
