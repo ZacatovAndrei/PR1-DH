@@ -1,7 +1,6 @@
 package main
 
 import (
-	"PR1-DH/color"
 	"log"
 	"math/rand"
 	"time"
@@ -21,17 +20,17 @@ type Table struct {
 func (t *Table) Init(i int) {
 	t.id = i
 	t.state = free
-	log.Printf(color.Green+"initialising table #%v with state %v\n"+color.Reset, t.id, t.state)
+	log.Printf(cGreen+"initialising table #%v with state %v\n"+cReset, t.id, t.state)
 }
 
 func (t *Table) Occupy() {
 	t.state = occupied
-	log.Printf(color.Blue+"Table %v is now occupied"+color.Reset, t.id)
+	log.Printf(cBlue+"Table %v is now occupied"+cReset, t.id)
 }
 
 func (t *Table) Free() {
 	t.state = free
-	log.Printf(color.Blue+"Table %v is now free"+color.Reset, t.id)
+	log.Printf(cBlue+"Table %v is now free"+cReset, t.id)
 }
 
 func (t *Table) rank(o *Order) int64 {

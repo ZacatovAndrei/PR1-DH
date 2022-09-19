@@ -1,7 +1,6 @@
 package main
 
 import (
-	"PR1-DH/color"
 	"container/list"
 	"encoding/json"
 	"fmt"
@@ -9,6 +8,18 @@ import (
 	"log"
 	"net/http"
 	"time"
+)
+
+const (
+	cReset  = "\033[0m"
+	cRed    = "\033[31m"
+	cGreen  = "\033[32m"
+	cYellow = "\033[33m"
+	cBlue   = "\033[34m"
+	cPurple = "\033[35m"
+	cCyan   = "\033[36m"
+	cGray   = "\033[37m"
+	cWhite  = "\033[97m"
 )
 
 const (
@@ -57,7 +68,7 @@ func getOrder(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	OrderList.PushFront(o)
-	log.Printf(color.Blue+"there are %v orders in the List now"+color.Reset, OrderList.Len())
+	log.Printf(cBlue+"there are %v orders in the List now"+cReset, OrderList.Len())
 }
 
 func initTables(tList []Table) {
@@ -70,7 +81,7 @@ func initTables(tList []Table) {
 func initWaiters(wList []Waiter, tList []Table, oList *list.List) {
 	for i := 0; i < WaiterNumber; i++ {
 		wList[i].Init(i)
-		log.Printf(color.Green+"initialising waiter #%v with state %v\n"+color.Reset, i, 0)
+		log.Printf(cGreen+"initialising waiter #%v with state %v\n"+cReset, i, 0)
 		go wList[i].Start(tList, oList)
 	}
 }

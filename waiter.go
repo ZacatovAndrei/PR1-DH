@@ -1,7 +1,6 @@
 package main
 
 import (
-	"PR1-DH/color"
 	"bytes"
 	"container/list"
 	"encoding/json"
@@ -50,13 +49,13 @@ func (w *Waiter) Start(tableList []Table, oList *list.List) {
 			}
 		}
 		//if there are no tables to serve or already took an order -> deliver orders from the kitchen
-		log.Println(color.Yellow + "No orders found in the hall,checking kitchen" + color.Reset)
+		log.Println(cYellow + "No orders found in the hall,checking kitchen" + cReset)
 		err := w.deliverOrder(oList, tableList)
 		if err != nil {
-			log.Println(color.Yellow, err, color.Reset)
+			log.Println(cYellow, err, cReset)
 			time.Sleep(1 * TimeUnit)
 		} else {
-			fmt.Println(color.Green + "Delivery successful" + color.Reset)
+			fmt.Println(cGreen + "Delivery successful" + cReset)
 		}
 
 	}
@@ -69,11 +68,11 @@ func (w *Waiter) deliverOrder(ol *list.List, tl []Table) error {
 	tOrder := ol.Front()
 	w.CurrentOrder = tOrder.Value.(*Order)
 	ol.Remove(tOrder)
-	log.Printf(color.Cyan+"took order:%v\n"+color.Reset, *w.CurrentOrder)
+	log.Printf(cCyan+"took order:%v\n"+cReset, *w.CurrentOrder)
 
 	//deliver
 	if id := w.CurrentOrder.TableId; id >= TableNumber {
-		log.Printf(color.Yellow+"No table found with id %v"+color.Reset, id)
+		log.Printf(cYellow+"No table found with id %v"+cReset, id)
 	}
 	tl[w.CurrentOrder.TableId].state = done
 	Rank = Rank + tl[w.CurrentOrder.TableId].rank(w.CurrentOrder)
@@ -94,19 +93,19 @@ func (w *Waiter) takeOrder(table *Table) {
 	}
 	//getMaxPrepTime(items)
 	w.CurrentOrder = NewOrder(OrderNumber, table.id, w.id, items, rand.Intn(5)+1, 45, time.Now().Unix())
-	log.Printf(color.Cyan+"Order from table #%v taken by waiter #%v\n"+color.Reset, table.id, w.id)
+	log.Printf(cCyan+"Order from table #%v taken by waiter #%v\n"+cReset, table.id, w.id)
 }
 
 func (w *Waiter) sendOrder(order *Order, address string) {
 	var b []byte
 	b, ok := json.Marshal(order)
 	if ok != nil {
-		log.Fatalln(color.Red + "Could not Marshal JSON" + color.Reset)
+		log.Fatalln(cRed + "Could not Marshal JSON" + cReset)
 	}
 	if resp, err := http.Post(address, "text/json", bytes.NewBuffer(b)); err != nil {
 		fmt.Printf("response:\t%v", resp)
 		panic(err)
 	}
-	log.Println(color.Green + "POST request succeeded" + color.Reset)
+	log.Println(cGreen + "POST request succeeded" + cReset)
 	w.CurrentOrder = nil
 }

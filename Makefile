@@ -5,4 +5,4 @@ build:
 clean: 
 	rm DiningHall
 docker:
-	docker build -t zacatov/pr1 .
+	docker build -t "zacatov/pr1" .
