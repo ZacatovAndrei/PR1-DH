@@ -8,6 +8,6 @@ COPY menu.json .
 
 RUN go build -o DiningHall
 
-EXPOSE 8086
+EXPOSE 8086/tcp
 
 ENTRYPOINT ["/app/DiningHall"]
