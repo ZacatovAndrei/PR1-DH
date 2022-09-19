@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"container/list"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -21,7 +25,8 @@ func (w *Waiter) Init(i int) {
 	w.OrderList = nil
 }
 
-func (w *Waiter) Start(tableList []Table) {
+func (w *Waiter) Start(tableList []Table, oList *list.List) {
+	rand.Seed(time.Now().UnixNano())
 	for {
 		//Searching for an order
 		//Randomising starting table location
@@ -43,14 +48,38 @@ func (w *Waiter) Start(tableList []Table) {
 			}
 		}
 		//if there are no tables to serve -> deliver orders from the kitchen
-		//TODO: implement a list of orders received from the kitchen
-		log.Println("No orders found,checking kitchen")
-		time.Sleep(5 * TimeUnit)
-		//if err:=w.deliverOrder(ol []Order,t []Table); err!=nil{
-		//log.Printf("Waiter #%v has found no orders in the kitchen\n",w.id)
-		//}
+		//however the reference to the initial OrderList seems to be lost
+		//TODO: make taking responses from the list work
+		log.Println("No orders found in the hall,checking kitchen")
+		time.Sleep(TimeUnit)
+		err := w.deliverOrder(oList, tableList)
+		if err != nil {
+			fmt.Println("error in delivery")
+			continue
+		}
+		fmt.Println("Delivery successful")
 
 	}
+}
+func (w *Waiter) deliverOrder(ol *list.List, tl []Table) error {
+	//getting an order from the list of prepared orders
+	if ol.Len() < 1 {
+		return errors.New("no orders in the kitchen")
+	}
+	tOrder := ol.Front()
+	w.CurrentOrder = tOrder.Value.(*Order)
+	fmt.Printf("%v", w.CurrentOrder)
+	ol.Remove(tOrder)
+	log.Printf("took order:%v\n", w.CurrentOrder)
+
+	//deliver
+	if id := w.CurrentOrder.TableId; id >= TableNumber {
+		log.Printf("No table found with id %v", id)
+	}
+	tl[w.CurrentOrder.TableId].state = done
+	Rank = Rank + tl[w.CurrentOrder.TableId].rank(w.CurrentOrder)
+	CompletedOrders++
+	return nil
 }
 
 func (w *Waiter) takeOrder(table *Table) {
@@ -60,7 +89,8 @@ func (w *Waiter) takeOrder(table *Table) {
 	table.orderID = OrderNumber
 	//generating a new order
 	numFoods := rand.Intn(MaxFoods) + 1
-	items := make([]int, 10)
+	items := make([]int, 0)
+	log.Printf("%v/%v", numFoods, MaxFoods)
 	for i := 0; i < numFoods; i++ {
 		items = append(items, rand.Intn(13))
 	}
@@ -70,14 +100,14 @@ func (w *Waiter) takeOrder(table *Table) {
 }
 
 func (w *Waiter) sendOrder(order *Order, address string) {
+	var b []byte
 	b, ok := json.Marshal(order)
-	fmt.Printf("Order:\n%v", string(b))
 	if ok != nil {
 		log.Fatalln("Could not Marshal JSON")
 	}
-	fmt.Println("fake POST request succeeded")
-	//if resp, err := http.Post(address, "text/json", bytes.NewBuffer(b)); err != nil {
-	//	fmt.Printf("%v", resp)
-	//	panic(err)
-	//}
+	if resp, err := http.Post(address, "text/json", bytes.NewBuffer(b)); err != nil {
+		fmt.Printf("%v", resp)
+		panic(err)
+	}
+	w.CurrentOrder = nil
 }

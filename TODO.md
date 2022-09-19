@@ -1,18 +1,19 @@
 # TODO LIST
 
 ### Main tasks
-- [ ] Parsing the menu file
-- [ ] Implement networking
+- [ ] Implement a way of configuring the menu (via `menu.json`)
+  - [x] creating the menu file
+  - [ ] Parsing the menu file
 - [ ] Implement logging
   - [x] basic logging on actions
-  - [ ] Writing stats to a CSV file
 ### Finished tasks
+- [X] Containerise the app
+- [x] Implement networking (sorta)
 - [x] Reimplement project in Golang (sorta)
-- [x] Implement a way of configuring the menu (via `menu.json`)
 - [x] Initialise the project repository
 - [x] Initialise the project
 
-### Minor tasks
+### Do i really need those?
 
 - [ ] Implement a way of configuring the DH parametres
-
+- [ ] Writing stats to a CSV file (not really needed since docker)

@@ -33,13 +33,17 @@ func (t *Table) Free() {
 	log.Printf("The order #%v has been served,Table %v is now free", t.orderID, t.id)
 }
 
+func (t *Table) rank(o *Order) int64 {
+	return 5
+}
+
 func TableController(table *Table) {
 	var random int
 	for {
 		switch table.state {
 		case free:
 			//it takes 10-15 units of time to occupy a new table
-			random = rand.Intn(6) + 10
+			random = rand.Intn(6) + 0
 			time.Sleep(time.Duration(random) * TimeUnit)
 			table.Occupy()
 		case done:
