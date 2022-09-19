@@ -6,14 +6,14 @@
   - [ ] Parsing the menu file
 - [ ] Implement logging
   - [x] basic logging on actions
+  - [ ] remove unnecessary logging 
 ### Finished tasks
-- [X] Containerise the app
-- [x] Implement networking (sorta)
-- [x] Reimplement project in Golang (sorta)
 - [x] Initialise the project repository
 - [x] Initialise the project
+- [x] Reimplement project in Golang
+- [X] Containerise the app
+- [x] Implement networking
 
 ### Do i really need those?
-
 - [ ] Implement a way of configuring the DH parametres
 - [ ] Writing stats to a CSV file (not really needed since docker)
