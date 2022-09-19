@@ -1,6 +1,7 @@
 package main
 
 import (
+	"PR1-DH/color"
 	"bytes"
 	"container/list"
 	"encoding/json"
@@ -19,7 +20,6 @@ type Waiter struct {
 }
 
 func (w *Waiter) Init(i int) {
-	//TODO: add a new parameter for kitchen's prepared order list
 	w.id = i
 	w.CurrentOrder = nil
 	w.OrderList = nil
@@ -42,39 +42,38 @@ func (w *Waiter) Start(tableList []Table, oList *list.List) {
 				w.takeOrder(&tableList[currentIndex])
 				tableList[currentIndex].state = waiting
 				//sleep for a bit because taking an order takes time
-				time.Sleep(5 * TimeUnit)
+				time.Sleep(3 * TimeUnit)
 				//send order to kitchen
 				w.sendOrder(w.CurrentOrder, KitchenServerAddress)
+				//if at least one order found then break the cycle and look for food from the kitchen
+				break
 			}
 		}
-		//if there are no tables to serve -> deliver orders from the kitchen
-		//however the reference to the initial OrderList seems to be lost
-		//TODO: make taking responses from the list work
-		log.Println("No orders found in the hall,checking kitchen")
-		time.Sleep(TimeUnit)
+		//if there are no tables to serve or already took an order -> deliver orders from the kitchen
+		log.Println(color.Yellow + "No orders found in the hall,checking kitchen" + color.Reset)
 		err := w.deliverOrder(oList, tableList)
 		if err != nil {
-			fmt.Println("error in delivery")
-			continue
+			log.Println(color.Yellow, err, color.Reset)
+			time.Sleep(1 * TimeUnit)
+		} else {
+			fmt.Println(color.Green + "Delivery successful" + color.Reset)
 		}
-		fmt.Println("Delivery successful")
 
 	}
 }
 func (w *Waiter) deliverOrder(ol *list.List, tl []Table) error {
 	//getting an order from the list of prepared orders
 	if ol.Len() < 1 {
-		return errors.New("no orders in the kitchen")
+		return errors.New("there are no orders in the kitchen")
 	}
 	tOrder := ol.Front()
 	w.CurrentOrder = tOrder.Value.(*Order)
-	fmt.Printf("%v", w.CurrentOrder)
 	ol.Remove(tOrder)
-	log.Printf("took order:%v\n", w.CurrentOrder)
+	log.Printf(color.Cyan+"took order:%v\n"+color.Reset, *w.CurrentOrder)
 
 	//deliver
 	if id := w.CurrentOrder.TableId; id >= TableNumber {
-		log.Printf("No table found with id %v", id)
+		log.Printf(color.Yellow+"No table found with id %v"+color.Reset, id)
 	}
 	tl[w.CurrentOrder.TableId].state = done
 	Rank = Rank + tl[w.CurrentOrder.TableId].rank(w.CurrentOrder)
@@ -90,24 +89,24 @@ func (w *Waiter) takeOrder(table *Table) {
 	//generating a new order
 	numFoods := rand.Intn(MaxFoods) + 1
 	items := make([]int, 0)
-	log.Printf("%v/%v", numFoods, MaxFoods)
 	for i := 0; i < numFoods; i++ {
 		items = append(items, rand.Intn(13))
 	}
 	//getMaxPrepTime(items)
 	w.CurrentOrder = NewOrder(OrderNumber, table.id, w.id, items, rand.Intn(5)+1, 45, time.Now().Unix())
-	log.Printf("Order from table #%v taken by waiter #%v\n", table.id, w.id)
+	log.Printf(color.Cyan+"Order from table #%v taken by waiter #%v\n"+color.Reset, table.id, w.id)
 }
 
 func (w *Waiter) sendOrder(order *Order, address string) {
 	var b []byte
 	b, ok := json.Marshal(order)
 	if ok != nil {
-		log.Fatalln("Could not Marshal JSON")
+		log.Fatalln(color.Red + "Could not Marshal JSON" + color.Reset)
 	}
 	if resp, err := http.Post(address, "text/json", bytes.NewBuffer(b)); err != nil {
-		fmt.Printf("%v", resp)
+		fmt.Printf("response:\t%v", resp)
 		panic(err)
 	}
+	log.Println(color.Green + "POST request succeeded" + color.Reset)
 	w.CurrentOrder = nil
 }

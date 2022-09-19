@@ -1,6 +1,7 @@
 package main
 
 import (
+	"PR1-DH/color"
 	"container/list"
 	"encoding/json"
 	"fmt"
@@ -33,7 +34,6 @@ func main() {
 	//initialising list of waiters
 	var WaiterList = make([]Waiter, 2*WaiterNumber)
 	initWaiters(WaiterList, TableList, OrderList)
-	go CheckTableState(TableList)
 	//TODO:implement the server side of the DiningHALL
 
 	http.HandleFunc("/distribution", getOrder)
@@ -57,13 +57,12 @@ func getOrder(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	OrderList.PushFront(o)
-	log.Printf("there are %v orders in the List now", OrderList.Len())
+	log.Printf(color.Blue+"there are %v orders in the List now"+color.Reset, OrderList.Len())
 }
 
 func initTables(tList []Table) {
 	for i := 0; i < TableNumber; i++ {
 		tList[i].Init(i)
-		log.Printf("initialising table #%v with state %v\n", tList[i].id, tList[i].state)
 		go TableController(&tList[i])
 	}
 }
@@ -71,15 +70,7 @@ func initTables(tList []Table) {
 func initWaiters(wList []Waiter, tList []Table, oList *list.List) {
 	for i := 0; i < WaiterNumber; i++ {
 		wList[i].Init(i)
-		log.Printf("initialising waiter #%v with state %v\n", i, 0)
+		log.Printf(color.Green+"initialising waiter #%v with state %v\n"+color.Reset, i, 0)
 		go wList[i].Start(tList, oList)
-	}
-}
-func CheckTableState(tList []Table) {
-	for {
-		for i := 0; i < TableNumber; i++ {
-			log.Printf("table %v; state %v", tList[i].id, tList[i].state)
-		}
-		time.Sleep(1 * TimeUnit)
 	}
 }

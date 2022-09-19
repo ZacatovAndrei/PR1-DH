@@ -1,6 +1,7 @@
 package main
 
 import (
+	"PR1-DH/color"
 	"log"
 	"math/rand"
 	"time"
@@ -20,17 +21,17 @@ type Table struct {
 func (t *Table) Init(i int) {
 	t.id = i
 	t.state = free
-	log.Printf("Initialising table %v \n", i)
+	log.Printf(color.Green+"initialising table #%v with state %v\n"+color.Reset, t.id, t.state)
 }
 
 func (t *Table) Occupy() {
 	t.state = occupied
-	log.Printf("Table %v is now occupied", t.id)
+	log.Printf(color.Blue+"Table %v is now occupied"+color.Reset, t.id)
 }
 
 func (t *Table) Free() {
 	t.state = free
-	log.Printf("The order #%v has been served,Table %v is now free", t.orderID, t.id)
+	log.Printf(color.Blue+"Table %v is now free"+color.Reset, t.id)
 }
 
 func (t *Table) rank(o *Order) int64 {
@@ -42,13 +43,13 @@ func TableController(table *Table) {
 	for {
 		switch table.state {
 		case free:
-			//it takes 10-15 units of time to occupy a new table
-			random = rand.Intn(6) + 0
+			//it takes 5-10 units of time to occupy a new table
+			random = rand.Intn(6) + 5
 			time.Sleep(time.Duration(random) * TimeUnit)
 			table.Occupy()
 		case done:
-			//it takes 15-20 units of time for people to leave after getting the order
-			random = rand.Intn(6) + 15
+			//it takes 5-10 units of time for people to leave after getting the order
+			random = rand.Intn(6) + 5
 			time.Sleep(time.Duration(random) * TimeUnit)
 			table.Free()
 		}
