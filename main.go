@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+//Constants for coloured output
 const (
 	cReset  = "\033[0m"
 	cRed    = "\033[31m"
@@ -27,23 +28,25 @@ const (
 	TableNumber          = 2
 	WaiterNumber         = 1
 	MaxFoods             = 6
-	KitchenServerAddress = "http://localhost:8087/order"
-	LocalAddress         = "localhost:8086"
+	KitchenServerAddress = "http://0.0.0.0:8087/order"
+	LocalAddress         = ":8086"
 )
 
+var ()
+
 var (
-	OrderNumber           = 0
-	Rank            int64 = 0
-	CompletedOrders       = 0
-	OrderList             = list.New()
+	CompletedOrders int32      = 0
+	OrderNumber     int32      = 0
+	Rank            int64      = 0
+	OrderList       *list.List = list.New()
 )
 
 func main() {
 	//initialising list of tables
-	var TableList = make([]Table, 2*TableNumber)
+	var TableList = make([]Table, TableNumber)
 	initTables(TableList)
 	//initialising list of waiters
-	var WaiterList = make([]Waiter, 2*WaiterNumber)
+	var WaiterList = make([]Waiter, WaiterNumber)
 	initWaiters(WaiterList, TableList, OrderList)
 	//TODO:implement the server side of the DiningHALL
 
@@ -80,8 +83,7 @@ func initTables(tList []Table) {
 
 func initWaiters(wList []Waiter, tList []Table, oList *list.List) {
 	for i := 0; i < WaiterNumber; i++ {
-		wList[i].Init(i)
-		log.Printf(cGreen+"initialising waiter #%v with state %v\n"+cReset, i, 0)
-		go wList[i].Start(tList, oList)
+		log.Printf(cGreen+"initialising waiter #%v\n"+cReset, i)
+		go wList[i].Start(i, tList, oList)
 	}
 }

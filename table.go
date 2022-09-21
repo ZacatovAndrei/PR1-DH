@@ -14,7 +14,7 @@ const (
 )
 
 type Table struct {
-	id, state, orderID int
+	id, state int
 }
 
 func (t *Table) Init(i int) {
