@@ -38,7 +38,7 @@ func (w *Waiter) Start(id int, tableList []Table, oList *list.List) {
 		if tid >= 0 {
 			w.takeOrder(&tableList[tid])
 			time.Sleep(3 * TimeUnit)
-			w.sendOrderToKitchen(w.CurrentOrder, KitchenServerAddressNoContainer)
+			w.sendOrderToKitchen(w.CurrentOrder)
 			time.Sleep(2 * TimeUnit)
 		}
 		err := w.deliverOrder(oList, tableList)
@@ -110,7 +110,7 @@ func (w *Waiter) deliverOrder(ol *list.List, tl []Table) error {
 	return nil
 }
 
-func (w *Waiter) sendOrderToKitchen(order *Order, address string) {
+func (w *Waiter) sendOrderToKitchen(order *Order) {
 	//serializing JSON
 	var b []byte
 	b, ok := json.Marshal(order)
@@ -118,7 +118,7 @@ func (w *Waiter) sendOrderToKitchen(order *Order, address string) {
 		log.Panicln(cRed + "Could not Marshal JSON" + cReset)
 	}
 	//POSTing it to the Kitchen server
-	if resp, err := http.Post(address, "application/json", bytes.NewBuffer(b)); err != nil {
+	if resp, err := http.Post(KitchenServerAddress, "application/json", bytes.NewBuffer(b)); err != nil {
 		fmt.Printf("response:\t%v", resp)
 		panic(err)
 	}

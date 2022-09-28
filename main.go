@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -73,5 +74,14 @@ func initTables(tList []Table) {
 func initWaiters(wList []Waiter, tList []Table, oList *list.List) {
 	for i := 0; i < WaiterNumber; i++ {
 		go wList[i].Start(i, tList, oList)
+	}
+}
+
+func CheckTableStates(tl []Table) {
+	for {
+		for i, table := range tl {
+			fmt.Printf("table %v with state %v", i, table.state)
+		}
+		time.Sleep(TimeUnit)
 	}
 }

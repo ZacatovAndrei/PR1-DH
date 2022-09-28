@@ -18,7 +18,7 @@ const (
 
 //global configuration variables
 const (
-	TimeUnit                        = 2 * time.Second
+	TimeUnit                        = 1000 * time.Millisecond
 	TableNumber                     = 10
 	WaiterNumber                    = 4
 	MaxFoods                        = 6

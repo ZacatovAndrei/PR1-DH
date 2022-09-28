@@ -35,6 +35,6 @@ func (o *Order) getMaxPrepTime() {
 			maxPrepTime = CurrentMenu[item].PreparationTime
 		}
 	}
-	maxPrepTime = int(math.Ceil(1.3 * float64(maxPrepTime)))
+	o.MaxWait = int(math.Ceil(1.3 * float64(maxPrepTime)))
 	log.Printf("Max prep time :%v\n", maxPrepTime)
 }
