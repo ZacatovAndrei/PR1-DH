@@ -1,5 +1,10 @@
 package main
 
+import (
+	"log"
+	"math"
+)
+
 type Order struct {
 	OrderId        int              `json:"order_id,omitempty"`
 	TableId        int              `json:"table_id,omitempty"`
@@ -21,4 +26,15 @@ func NewOrder(orderId, tableId, waiterId int, items []int, priority, maxWait int
 		Priority:   priority,
 		MaxWait:    maxWait,
 		PickUpTime: pickUpTime}
+}
+
+func (o *Order) getMaxPrepTime() {
+	maxPrepTime := 0
+	for _, item := range o.Items {
+		if CurrentMenu[item].PreparationTime > maxPrepTime {
+			maxPrepTime = CurrentMenu[item].PreparationTime
+		}
+	}
+	o.MaxWait = int(math.Ceil(1.3 * float64(maxPrepTime)))
+	log.Printf("Max prep time :%v\n", maxPrepTime)
 }

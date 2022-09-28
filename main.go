@@ -10,48 +10,33 @@ import (
 	"time"
 )
 
-const (
-	cReset  = "\033[0m"
-	cRed    = "\033[31m"
-	cGreen  = "\033[32m"
-	cYellow = "\033[33m"
-	cBlue   = "\033[34m"
-	cPurple = "\033[35m"
-	cCyan   = "\033[36m"
-	cGray   = "\033[37m"
-	cWhite  = "\033[97m"
-)
-
-const (
-	TimeUnit             = 2 * time.Second
-	TableNumber          = 2
-	WaiterNumber         = 1
-	MaxFoods             = 6
-	KitchenServerAddress = "http://localhost:8087/order"
-	LocalAddress         = "localhost:8086"
-)
-
 var (
-	OrderNumber           = 0
-	Rank            int64 = 0
-	CompletedOrders       = 0
-	OrderList             = list.New()
+	CompletedOrders int64      = 0
+	OrderNumber     int64      = 0
+	Rank            int64      = 0
+	OrderList       *list.List = list.New()
+	CurrentMenu     RestaurantMenu
 )
 
 func main() {
-	//initialising list of tables
-	var TableList = make([]Table, 2*TableNumber)
-	initTables(TableList)
-	//initialising list of waiters
-	var WaiterList = make([]Waiter, 2*WaiterNumber)
-	initWaiters(WaiterList, TableList, OrderList)
-	//TODO:implement the server side of the DiningHALL
+	//parsing menu
+	CurrentMenu = CurrentMenu.ParseMenu(MenuPath + "menu.json")
+	log.Printf("current menu :\n %+v\n", CurrentMenu)
 
+	//initialising list of tables
+	var TableList = make([]Table, TableNumber)
+	initTables(TableList)
+
+	//initialising list of waiters
+	var WaiterList = make([]Waiter, WaiterNumber)
+	initWaiters(WaiterList, TableList, OrderList)
+
+	//initialising the server side
 	http.HandleFunc("/distribution", getOrder)
 	if err := http.ListenAndServe(LocalAddress, nil); err != nil {
 		panic(err)
 	}
-
+	defer log.Printf("the rank is %v")
 }
 
 func getOrder(w http.ResponseWriter, r *http.Request) {
@@ -59,29 +44,44 @@ func getOrder(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "The server only supports POST requests\n")
 		return
 	}
+
+	//reading the response body
 	b, ok := ioutil.ReadAll(r.Body)
 	if ok != nil {
 		panic(ok)
 	}
+
+	//deserializing the Order object
 	o := new(Order)
 	if err := json.Unmarshal(b, o); err != nil {
 		panic(err)
 	}
+
+	//locking listAccess so that only one thread could access the list
+	//( the other threads being for example waiters' deliverOrder )
+	listAccess.Lock()
 	OrderList.PushFront(o)
-	log.Printf(cBlue+"there are %v orders in the List now"+cReset, OrderList.Len())
+	log.Printf(cBlue+"there are %v orders in the List now"+cResetNl, OrderList.Len())
+	listAccess.Unlock()
 }
 
 func initTables(tList []Table) {
 	for i := 0; i < TableNumber; i++ {
-		tList[i].Init(i)
-		go TableController(&tList[i])
+		go tList[i].Start(i)
 	}
 }
 
 func initWaiters(wList []Waiter, tList []Table, oList *list.List) {
 	for i := 0; i < WaiterNumber; i++ {
-		wList[i].Init(i)
-		log.Printf(cGreen+"initialising waiter #%v with state %v\n"+cReset, i, 0)
-		go wList[i].Start(tList, oList)
+		go wList[i].Start(i, tList, oList)
+	}
+}
+
+func CheckTableStates(tl []Table) {
+	for {
+		for i, table := range tl {
+			fmt.Printf("table %v with state %v", i, table.state)
+		}
+		time.Sleep(TimeUnit)
 	}
 }
